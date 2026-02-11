@@ -15,14 +15,17 @@ A Flutter plugin for integrating the Hippo customer support platform into your m
 
 ## Getting Started
 
-To get started, add the Hippo Flutter SDK to your `pubspec.yaml` file:
+This fork patches the iOS side for the latest Hippo SDK (adds `hippoAnnouncementCustomerUnreadCount` and bumps the minimum iOS to 15.1). Consume it via git:
 
 ```yaml
-dependencies:
-  hippo_flutter_sdk: ^0.1.2 # Check for the latest version on pub.dev
+dependency_overrides:
+  hippo_flutter_sdk:
+    git:
+      url: https://github.com/ouseqqam/hippo_flutter_sdk_fix.git
+      ref: main
 ```
 
-Then, run `flutter pub get` to install the package.
+Then run `flutter pub get`.
 
 ## Android Setup
 
@@ -35,6 +38,36 @@ dependencies {
     // ... other dependencies
     implementation 'org.java-websocket:Java-WebSocket:1.5.1'
 }
+```
+
+## iOS Setup (updated)
+
+- Minimum iOS: 15.1
+- Hippo is a static framework; use static linkage:
+
+```ruby
+platform :ios, '15.1'
+
+target 'Runner' do
+  use_frameworks! :linkage => :static
+  pod 'Hippo', :git => 'https://github.com/Jungle-Works/Hippo-iOS-SDK', :branch => 'master'
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.1'
+    end
+  end
+end
+```
+
+Then run:
+
+```
+cd ios && pod install --repo-update
 ```
 
 ## Usage
